@@ -5,5 +5,8 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, ColumnLimit: 120}",
+		"editor.formatOnSave": true
+	}
 }
