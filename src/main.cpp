@@ -5,8 +5,8 @@
 #include <SPI.h>
 #include <SerialFlash.h>
 #include <Wire.h>
-#include <math.h>
 
+#include "music.h"
 #include "wait.h"
 
 // GUItool: begin automatically generated code
@@ -20,11 +20,11 @@ AudioConnection patchCord3(amp1, 0, i2s1, 1);
 
 #define TRIGGER_PIN 12   // Arduino pin tied to trigger pin on the ultrasonic sensor.
 #define ECHO_PIN 11      // Arduino pin tied to echo pin on the ultrasonic sensor.
-#define MAX_DISTANCE 60  // Maximum distance we want to ping for (in centimeters).
+#define MAX_DISTANCE 50  // Maximum distance we want to ping for (in centimeters).
 // Maximum sensor distance is rated at 400-500cm.
 
-#define MIN_FREQ 220
-#define MAX_FREQ 880
+#define MIN_FREQ 440
+#define RANGE_SIZE 18
 
 NewPing sonar(TRIGGER_PIN, ECHO_PIN,
               MAX_DISTANCE);  // NewPing setup of pins and maximum distance.
@@ -39,11 +39,11 @@ void setup() {
 
 void loop() {
   // waveform1.frequency(440);
-  delay(50);
+  delay(29);
   unsigned int rawDistance = sonar.convert_cm(sonar.ping_median(5));
   unsigned int distance = rawDistance > 0 ? rawDistance : MAX_DISTANCE;
   // Frequency: lower the further away you get, higher the closer you get
-  float frequency = MIN_FREQ + static_cast<float>(MAX_FREQ - MIN_FREQ) * (log(distance) / log(MAX_DISTANCE));
+  float frequency = frequency_from_distance(distance, MAX_DISTANCE, MIN_FREQ, RANGE_SIZE);
   waveform1.frequency(frequency);
   Serial.print("Frequency: ");
   Serial.print(frequency);
