@@ -29,3 +29,19 @@ float frequency_from_distance(float distance, float maxDistance, double minFrequ
   }
   return frequency_from_base(minFrequency, notesAboveBase);
 }
+
+float gainArray[10] = {0};
+int gainArraySize = sizeof(gainArray) / sizeof(float);
+int currentIndex = 0;
+
+float gain_from_distance(float distance, float maxDistance) {
+  float thisVolume = static_cast<float>((maxDistance - distance) / maxDistance);
+  gainArray[currentIndex] = thisVolume;
+  currentIndex = (currentIndex + 1) % gainArraySize;
+  float sumVolumes = 0;
+  for (int i = 0; i < gainArraySize; i++) {
+    sumVolumes += gainArray[i];
+  }
+  float averagedVolumes = sumVolumes / (float)gainArraySize;
+  return averagedVolumes;
+}

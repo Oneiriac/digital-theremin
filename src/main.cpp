@@ -44,7 +44,9 @@ void loop() {
   float distance = rawDistance > 0 ? rawDistance : (float)MAX_DISTANCE;
   // Frequency: lower the further away you get, higher the closer you get
   float frequency = frequency_from_distance(distance, MAX_DISTANCE, MIN_FREQ, RANGE_SIZE);
+  float gain = gain_from_distance(distance, MAX_DISTANCE);  // Gain: lower when further away, higher when closer
   waveform1.frequency(frequency);
+  // amp1.gain(gain);
   // Print output to Serial
   char output[64];
   snprintf(output, sizeof(output), "Frequency (Hz): %.2f\t\tDistance (cm): %.1f", frequency, distance);
