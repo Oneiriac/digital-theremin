@@ -34,11 +34,12 @@ void setup() {
   Serial.begin(115200);
   waveform1.begin(WAVEFORM_SINE);
   waveform1.amplitude(1.0);
-  amp1.gain(0.1);
+  amp1.gain(1.0);
 }
 
 void loop() {
   // waveform1.frequency(440);
+  delay(50);
   unsigned int rawDistance = sonar.convert_cm(sonar.ping_median(5));
   unsigned int distance = rawDistance > 0 ? rawDistance : MAX_DISTANCE;
   // Frequency: lower the further away you get, higher the closer you get
