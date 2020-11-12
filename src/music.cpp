@@ -4,7 +4,7 @@
 
 double ratio = pow(2.0, 1.0 / 12.0);
 
-int ordinal_note_from_distance(int distance, int maxDistance, int rangeSize) {
+int ordinal_note_from_distance(float distance, float maxDistance, int rangeSize) {
   return round(static_cast<double>(rangeSize * (maxDistance - distance) / maxDistance));
 }
 
@@ -12,7 +12,7 @@ double frequency_from_base(double baseFrequency, double notesAboveBase) {
   return baseFrequency * pow(2.0, notesAboveBase / 12.0);
 }
 
-float frequency_from_distance(int distance, int maxDistance, double minFrequency, int rangeSize = 13) {
+float frequency_from_distance(float distance, float maxDistance, double minFrequency, int rangeSize) {
   int notesAboveBase = ordinal_note_from_distance(distance, maxDistance, rangeSize);
   return frequency_from_base(minFrequency, notesAboveBase);
 }

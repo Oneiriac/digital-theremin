@@ -40,12 +40,13 @@ void setup() {
 void loop() {
   // waveform1.frequency(440);
   delay(29);
-  unsigned int rawDistance = sonar.convert_cm(sonar.ping_median(5));
-  unsigned int distance = rawDistance > 0 ? rawDistance : MAX_DISTANCE;
+  float rawDistance = (float)sonar.ping_median(5) / (float)US_ROUNDTRIP_CM;
+  float distance = rawDistance > 0 ? rawDistance : (float)MAX_DISTANCE;
   // Frequency: lower the further away you get, higher the closer you get
   float frequency = frequency_from_distance(distance, MAX_DISTANCE, MIN_FREQ, RANGE_SIZE);
   waveform1.frequency(frequency);
-  Serial.print("Frequency: ");
-  Serial.print(frequency);
-  Serial.println("Hz");
+  // Print output to Serial
+  char output[64];
+  snprintf(output, sizeof(output), "Frequency (Hz): %.2f\t\tDistance (cm): %.1f", frequency, distance);
+  Serial.println(output);
 }
