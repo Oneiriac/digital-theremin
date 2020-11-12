@@ -24,7 +24,7 @@ AudioConnection patchCord3(amp1, 0, i2s1, 1);
 // Maximum sensor distance is rated at 400-500cm.
 
 #define MIN_FREQ 440
-#define RANGE_SIZE 18
+#define RANGE_SIZE 13
 
 NewPing sonar(TRIGGER_PIN, ECHO_PIN,
               MAX_DISTANCE);  // NewPing setup of pins and maximum distance.
