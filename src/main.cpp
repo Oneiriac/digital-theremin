@@ -9,10 +9,14 @@
 
 #include "wait.h"
 
-AudioSynthWaveform waveform1;
-AudioOutputI2S i2s1;
-AudioConnection patchCord1(waveform1, 0, i2s1, 0);
-AudioConnection patchCord2(waveform1, 0, i2s1, 1);
+// GUItool: begin automatically generated code
+AudioSynthWaveform waveform1;  // xy=450.0056686401367,191.99994659423828
+AudioAmplifier amp1;           // xy=745.0056076049805,175.005615234375
+AudioOutputI2S i2s1;           // xy=1010.0057220458984,184.99980354309082
+AudioConnection patchCord1(waveform1, amp1);
+AudioConnection patchCord2(amp1, 0, i2s1, 0);
+AudioConnection patchCord3(amp1, 0, i2s1, 1);
+// GUItool: end automatically generated code
 
 #define TRIGGER_PIN 12   // Arduino pin tied to trigger pin on the ultrasonic sensor.
 #define ECHO_PIN 11      // Arduino pin tied to echo pin on the ultrasonic sensor.
@@ -29,11 +33,12 @@ void setup() {
   AudioMemory(10);
   Serial.begin(115200);
   waveform1.begin(WAVEFORM_SINE);
+  waveform1.amplitude(1.0);
+  amp1.gain(0.1);
 }
 
 void loop() {
   // waveform1.frequency(440);
-  waveform1.amplitude(0.1);
   unsigned int rawDistance = sonar.convert_cm(sonar.ping_median(5));
   unsigned int distance = rawDistance > 0 ? rawDistance : MAX_DISTANCE;
   // Frequency: lower the further away you get, higher the closer you get
