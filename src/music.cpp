@@ -4,6 +4,7 @@
 #include <math.h>
 
 #include <cmath>
+#include <string>
 
 #define HYSTERESIS_THRESHOLD 2
 #define BASE_NOTE_BUCKET_OFFSET 2  // How many extra buckets should capture the base note
@@ -11,6 +12,15 @@
 double ratio = pow(2.0, 1.0 / 12.0);
 float lastTransitionDistance;
 int currentNote = 0;
+
+std::string noteStrings[] = {
+    "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
+};
+
+std::string frequency_to_note(float frequency) {
+  int midiNote = (12 * (log10(frequency / 440.0) / log10(2)) + 57) + 0.5;
+  return noteStrings[midiNote % 12];
+}
 
 int ordinal_note_from_distance(float distance, float maxDistance, int rangeSize) {
   int numBuckets = rangeSize + BASE_NOTE_BUCKET_OFFSET;
@@ -38,8 +48,8 @@ float frequency_from_distance(float distance, float maxDistance, double minFrequ
   }
   float frequency = frequency_from_base(minFrequency, notesAboveBase);
   char output[96];
-  snprintf(output, sizeof(output), "distance: %.2f\t\tlastTransitionDistance: %.2f\t\tfrequency: %.2f", distance,
-           lastTransitionDistance, frequency);
+  snprintf(output, sizeof(output), "distance: %.2f\t\tlastTransitionDistance: %.2f\t\tnote: %s", distance,
+           lastTransitionDistance, frequency_to_note(frequency).c_str());
   Serial.println(output);
   return frequency;
 }
