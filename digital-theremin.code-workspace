@@ -40,7 +40,8 @@
 			"cinttypes": "cpp",
 			"utility": "cpp",
 			"typeinfo": "cpp",
-			"optional": "cpp"
+			"optional": "cpp",
+			"string": "cpp"
 		}
 	}
 }
