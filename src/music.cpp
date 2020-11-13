@@ -4,7 +4,6 @@
 #include <math.h>
 
 #include <cmath>
-#include <iterator>
 #include <string>
 #include <vector>
 
