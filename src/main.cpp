@@ -32,7 +32,7 @@ AudioConnection patchCord9(filter1, 0, i2s1, 1);
 
 #define TRIGGER_PIN 12   // Arduino pin tied to trigger pin on the ultrasonic sensor.
 #define ECHO_PIN 11      // Arduino pin tied to echo pin on the ultrasonic sensor.
-#define MAX_DISTANCE 50  // Maximum distance we want to ping for (in centimeters).
+#define MAX_DISTANCE 40  // Maximum distance we want to ping for (in centimeters).
 // Maximum sensor distance is rated at 400-500cm.
 
 #define MIN_FREQ 440
@@ -44,7 +44,7 @@ NewPing sonar(TRIGGER_PIN, ECHO_PIN,
 void play_frequency(float freq) {
   waveform1.frequency(freq / 2.0);
   waveformMod1.frequency(freq);
-  waveform2.frequency(freq * 1.5);
+  waveform2.frequency(freq * 3.0 / 2.0);
 }
 
 void setup() {
@@ -72,8 +72,7 @@ void setup() {
 void loop() {
   // waveform1.frequency(440);
   delay(29);
-  float rawDistance = (float)sonar.ping_median(5) / (float)US_ROUNDTRIP_CM;
-  float distance = rawDistance > 0 ? rawDistance : (float)MAX_DISTANCE;
+  float distance = (float)sonar.ping_median(3) / (float)US_ROUNDTRIP_CM;
   // Frequency: lower the further away you get, higher the closer you get
   float frequency = frequency_from_distance(distance, MAX_DISTANCE, MIN_FREQ, RANGE_SIZE);
   float gain = gain_from_distance(distance, MAX_DISTANCE);  // Gain: lower when further away, higher when closer
@@ -82,5 +81,5 @@ void loop() {
   // Print output to Serial
   char output[64];
   snprintf(output, sizeof(output), "Frequency (Hz): %.2f\t\tDistance (cm): %.1f", frequency, distance);
-  Serial.println(output);
+  // Serial.println(output);
 }
