@@ -6,6 +6,8 @@
 #include <SerialFlash.h>
 #include <Wire.h>
 
+#include <string>
+
 #include "music.h"
 #include "wait.h"
 
@@ -33,11 +35,12 @@ AudioConnection patchCord9(filter1, 0, i2s1, 1);
 #define MAX_DISTANCE 40  // Maximum distance we want to ping for (in centimeters).
 // Maximum sensor distance is rated at 400-500cm.
 
-#define MIN_FREQ 440
+#define BASE_NOTE 60
 #define RANGE_SIZE 13
 
 NewPing pitch_sensor(12, 11, MAX_DISTANCE);
 NewPing gain_sensor(14, 13, MAX_DISTANCE);
+PitchHandler pitch_handler(MAX_DISTANCE, BASE_NOTE, RANGE_SIZE);
 
 void play_frequency(float freq) {
   waveform1.frequency(freq / 2.0);
@@ -63,7 +66,7 @@ void setup() {
   // Misc
   freeverb1.roomsize(0.2);
   freeverb1.damping(0.1);
-  filter1.frequency(8 * MIN_FREQ);
+  filter1.frequency(8 * pitch_handler.midi_note_to_frequency(100));
   amp1.gain(1.0);
 }
 
@@ -73,14 +76,17 @@ void loop() {
   float pitch_distance = (float)pitch_sensor.ping_median(3) / (float)US_ROUNDTRIP_CM;
   float gain_distance = (float)gain_sensor.ping_median(3) / (float)US_ROUNDTRIP_CM;
   // Frequency: lower the further away you get, higher the closer you get
-  float frequency = frequency_from_distance(pitch_distance, MAX_DISTANCE, MIN_FREQ, RANGE_SIZE);
-  float gain = gain_from_distance(gain_distance, MAX_DISTANCE);  // Gain: lower when further away, higher when closer
+  int note_number = pitch_handler.midi_note_from_distance(pitch_distance);
+  string note_string = pitch_handler.midi_note_string(note_number);
+  float frequency = pitch_handler.midi_note_to_frequency(note_number);
   play_frequency(frequency);
+
+  float gain = gain_from_distance(gain_distance, MAX_DISTANCE);  // Gain: lower when further away, higher when closer
   amp1.gain(gain);
-  // amp1.gain(gain);
   // Print output to Serial
   char output[96];
-  snprintf(output, sizeof(output), "Frequency (Hz): %.2f\t\tPitch distance (cm): %.1f\tGain: %.1f", frequency,
-           pitch_distance, gain);
+  snprintf(output, sizeof(output),
+           "Note: %s\tFrequency (Hz): %.1f\t Pitch distance (cm): %.1f\tGain: %.1f\tGain distance (cm): %.1f",
+           note_string.c_str(), frequency, pitch_distance, gain, gain_distance);
   Serial.println(output);
 }
