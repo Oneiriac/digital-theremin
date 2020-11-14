@@ -35,7 +35,7 @@ AudioConnection patchCord9(filter1, 0, i2s1, 1);
 #define MAX_DISTANCE 40  // Maximum distance we want to ping for (in centimeters).
 // Maximum sensor distance is rated at 400-500cm.
 
-#define BASE_NOTE 60
+#define BASE_NOTE 48
 #define RANGE_SIZE 13
 
 NewPing pitch_sensor(12, 11, MAX_DISTANCE);
@@ -55,10 +55,10 @@ void setup() {
   waveform1.begin(WAVEFORM_SQUARE);
   waveform1.amplitude(0.1);
   // Configure osc 2
-  waveformMod1.begin(WAVEFORM_SINE);
+  waveformMod1.begin(WAVEFORM_TRIANGLE_VARIABLE);
   waveformMod1.amplitude(0.2);
   // Configure osc 3
-  waveform2.begin(WAVEFORM_TRIANGLE);
+  waveform2.begin(WAVEFORM_SAWTOOTH);
   waveform2.amplitude(0.25);
   sine1.frequency(0.5);
   sine1.amplitude(0.1);
@@ -66,7 +66,7 @@ void setup() {
   // Misc
   freeverb1.roomsize(0.2);
   freeverb1.damping(0.1);
-  filter1.frequency(8 * pitch_handler.midi_note_to_frequency(100));
+  filter1.frequency(pitch_handler.midi_note_to_frequency(80));
   amp1.gain(1.0);
 }
 
