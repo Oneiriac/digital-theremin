@@ -30,16 +30,14 @@ AudioConnection patchCord8(filter1, 0, i2s1, 0);
 AudioConnection patchCord9(filter1, 0, i2s1, 1);
 // GUItool: end automatically generated code
 
-#define TRIGGER_PIN 12   // Arduino pin tied to trigger pin on the ultrasonic sensor.
-#define ECHO_PIN 11      // Arduino pin tied to echo pin on the ultrasonic sensor.
 #define MAX_DISTANCE 40  // Maximum distance we want to ping for (in centimeters).
 // Maximum sensor distance is rated at 400-500cm.
 
 #define MIN_FREQ 440
 #define RANGE_SIZE 13
 
-NewPing sonar(TRIGGER_PIN, ECHO_PIN,
-              MAX_DISTANCE);  // NewPing setup of pins and maximum distance.
+NewPing pitch_sensor(12, 11, MAX_DISTANCE);
+NewPing gain_sensor(14, 13, MAX_DISTANCE);
 
 void play_frequency(float freq) {
   waveform1.frequency(freq / 2.0);
@@ -72,14 +70,17 @@ void setup() {
 void loop() {
   // waveform1.frequency(440);
   delay(29);
-  float distance = (float)sonar.ping_median(3) / (float)US_ROUNDTRIP_CM;
+  float pitch_distance = (float)pitch_sensor.ping_median(3) / (float)US_ROUNDTRIP_CM;
+  float gain_distance = (float)gain_sensor.ping_median(3) / (float)US_ROUNDTRIP_CM;
   // Frequency: lower the further away you get, higher the closer you get
-  float frequency = frequency_from_distance(distance, MAX_DISTANCE, MIN_FREQ, RANGE_SIZE);
-  float gain = gain_from_distance(distance, MAX_DISTANCE);  // Gain: lower when further away, higher when closer
+  float frequency = frequency_from_distance(pitch_distance, MAX_DISTANCE, MIN_FREQ, RANGE_SIZE);
+  float gain = gain_from_distance(gain_distance, MAX_DISTANCE);  // Gain: lower when further away, higher when closer
   play_frequency(frequency);
+  amp1.gain(gain);
   // amp1.gain(gain);
   // Print output to Serial
-  char output[64];
-  snprintf(output, sizeof(output), "Frequency (Hz): %.2f\t\tDistance (cm): %.1f", frequency, distance);
-  // Serial.println(output);
+  char output[96];
+  snprintf(output, sizeof(output), "Frequency (Hz): %.2f\t\tPitch distance (cm): %.1f\tGain: %.1f", frequency,
+           pitch_distance, gain);
+  Serial.println(output);
 }
