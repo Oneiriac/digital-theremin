@@ -28,8 +28,12 @@ vector<int> PENTATONIC_SCALE = {
 
 vector<int> MINOR_SCALE = {0, 2, 3, 5, 7, 8, 10};
 vector<int> WHOLE_TONE_SCALE = {0, 2, 4, 6, 8, 10};
+vector<int> MAJOR_CHORD = {0, 4, 7};
+vector<int> MINOR_CHORD = {0, 3, 7};
+vector<int> MAJOR_7TH_CHORD = {0, 4, 7, 11};
+vector<int> DOMINANT_7TH_CHORD = {0, 4, 7, 10};
 
-#define SCALE_TO_USE MINOR_SCALE
+#define SCALE_TO_USE MAJOR_7TH_CHORD
 
 /**
  * @brief From the note number (i.e. notes above a root note in the given scale), calculate the chromatic note number
@@ -115,7 +119,7 @@ float frequency_from_distance(float distance, float maxDistance, double minFrequ
   return frequency;
 }
 
-float gainArray[10] = {0};
+float gainArray[5] = {0};
 int gainArraySize = sizeof(gainArray) / sizeof(float);
 int currentIndex = 0;
 
@@ -127,9 +131,14 @@ int currentIndex = 0;
  * @return float
  */
 float gain_from_distance(float distance, float maxDistance) {
-  float thisVolume = static_cast<float>((maxDistance - distance) / maxDistance);
-  gainArray[currentIndex] = thisVolume;
-  currentIndex = (currentIndex + 1) % gainArraySize;
+  boolean noDistance = distance == 0;
+  // If distance is registered, update gainArray
+  // If distance is not registered, do not update gainArray
+  if (!noDistance) {
+    float thisVolume = static_cast<float>((maxDistance - distance) / maxDistance);
+    gainArray[currentIndex] = thisVolume;
+    currentIndex = (currentIndex + 1) % gainArraySize;
+  }
   float sumVolumes = 0;
   for (int i = 0; i < gainArraySize; i++) {
     sumVolumes += gainArray[i];
