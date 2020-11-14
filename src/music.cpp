@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include "scales.h"
+
 using namespace std;
 
 // How many centimetres away from the last note transition point before a transition is allowed
@@ -17,21 +19,6 @@ using namespace std;
 double ratio = pow(2.0, 1.0 / 12.0);
 float lastTransitionDistance;
 int currentNote = 0;
-
-vector<int> MAJOR_SCALE = {
-    0, 2, 4, 5, 7, 9, 11,
-};
-
-vector<int> PENTATONIC_SCALE = {
-    0, 2, 4, 7, 9,
-};
-
-vector<int> MINOR_SCALE = {0, 2, 3, 5, 7, 8, 10};
-vector<int> WHOLE_TONE_SCALE = {0, 2, 4, 6, 8, 10};
-vector<int> MAJOR_CHORD = {0, 4, 7};
-vector<int> MINOR_CHORD = {0, 3, 7};
-vector<int> MAJOR_7TH_CHORD = {0, 4, 7, 11};
-vector<int> DOMINANT_7TH_CHORD = {0, 4, 7, 10};
 
 #define SCALE_TO_USE MAJOR_7TH_CHORD
 
