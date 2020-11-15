@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Audio.h>
+#include <MIDI.h>
 #include <NewPing.h>
 #include <SD.h>
 #include <SPI.h>
@@ -32,7 +33,7 @@ AudioConnection patchCord8(filter1, 0, i2s1, 0);
 AudioConnection patchCord9(filter1, 0, i2s1, 1);
 // GUItool: end automatically generated code
 
-#define MAX_DISTANCE 40  // Maximum distance we want to ping for (in centimeters).
+#define MAX_DISTANCE 60  // Maximum distance we want to ping for (in centimeters).
 // Maximum sensor distance is rated at 400-500cm.
 
 #define BASE_NOTE 48
@@ -40,7 +41,9 @@ AudioConnection patchCord9(filter1, 0, i2s1, 1);
 
 NewPing pitch_sensor(12, 11, MAX_DISTANCE);
 NewPing gain_sensor(14, 13, MAX_DISTANCE);
-PitchHandler pitch_handler(MAX_DISTANCE, BASE_NOTE, RANGE_SIZE);
+MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, MIDI);
+PitchHandler pitch_handler(MAX_DISTANCE, BASE_NOTE, RANGE_SIZE, MIDI);
+const int channel = 1;
 
 void play_frequency(float freq) {
   waveform1.frequency(freq / 2.0);
@@ -51,6 +54,7 @@ void play_frequency(float freq) {
 void setup() {
   AudioMemory(10);
   Serial.begin(115200);
+  MIDI.begin();
   // Configure osc 1
   waveform1.begin(WAVEFORM_SQUARE);
   waveform1.amplitude(0.1);
@@ -70,6 +74,9 @@ void setup() {
   amp1.gain(1.0);
 }
 
+int currentNote = 0;
+int currentVelocity = 0;
+
 void loop() {
   // waveform1.frequency(440);
   delay(29);
@@ -80,9 +87,17 @@ void loop() {
   string note_string = pitch_handler.midi_note_string(note_number);
   float frequency = pitch_handler.midi_note_to_frequency(note_number);
   play_frequency(frequency);
-
   float gain = gain_from_distance(gain_distance, MAX_DISTANCE);  // Gain: lower when further away, higher when closer
   amp1.gain(gain);
+  int velocity = round(gain * 127.0);
+
+  if (note_number != currentNote) {
+    MIDI.sendNoteOn(note_number, velocity, 1);
+    MIDI.sendNoteOff(currentNote, currentVelocity, 1);
+    currentNote = note_number;
+    currentVelocity = velocity;
+  }
+
   // Print output to Serial
   char output[96];
   snprintf(output, sizeof(output),

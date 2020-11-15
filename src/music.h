@@ -1,6 +1,7 @@
 #ifndef MUSIC_H
 #define MUSIC_H
 #include <Arduino.h>
+#include <Midi.h>
 
 #include <cmath>
 #include <string>
@@ -29,10 +30,11 @@ SCALE_TYPE CHROMATIC_SCALE = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
 // (to allow them to be selected more easily)
 #define LOWEST_EXTRA_BUCKETS 2
 #define HIGHEST_EXTRA_BUCKETS 1
+#define MIDI_TYPE midi::MidiInterface<midi::SerialMIDI<HardwareSerial>>
 
 class PitchHandler {
  public:
-  explicit PitchHandler(float maxDistance, int baseNote, int rangeSize);
+  explicit PitchHandler(float maxDistance, int baseNote, int rangeSize, MIDI_TYPE midi);
   int midi_note_from_distance(float distance);
   void set_active_scale(const vector<int>& scale);
   float midi_note_to_frequency(int midi_note);
@@ -80,6 +82,7 @@ class PitchHandler {
   int rangeSize{13};
   float lastTransitionDistance{-1};
   SCALE_TYPE& activeScale;
+  MIDI_TYPE midi;
 };
 float gain_from_distance(float distance, float maxDistance);
 

@@ -1,6 +1,7 @@
 #include "music.h"
 
 #include <Arduino.h>
+#include <MIDI.h>
 #include <math.h>
 
 #include <cmath>
@@ -12,7 +13,7 @@ using namespace std;
 // How many centimetres away from the last note transition point before a transition is allowed
 #define HYSTERESIS_THRESHOLD 2.0
 
-#define SCALE_TO_USE MAJOR_7TH_CHORD
+#define SCALE_TO_USE WHOLE_TONE_SCALE
 
 double ratio = pow(2.0, 1.0 / 12.0);
 
@@ -20,8 +21,8 @@ string NOTE_STRINGS[12] = {
     "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
 };
 
-PitchHandler::PitchHandler(float maxDistance, int baseNote, int rangeSize)
-    : maxDistance(maxDistance), baseNote(baseNote), rangeSize(rangeSize), activeScale(SCALE_TO_USE){};
+PitchHandler::PitchHandler(float maxDistance, int baseNote, int rangeSize, MIDI_TYPE midi)
+    : maxDistance(maxDistance), baseNote(baseNote), rangeSize(rangeSize), activeScale(SCALE_TO_USE), midi(midi){};
 
 /**
  * @brief Calculate the midi note number from the given distance value.
