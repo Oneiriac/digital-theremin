@@ -33,7 +33,7 @@ AudioConnection patchCord8(filter1, 0, i2s1, 0);
 AudioConnection patchCord9(filter1, 0, i2s1, 1);
 // GUItool: end automatically generated code
 
-#define MAX_DISTANCE 60  // Maximum distance we want to ping for (in centimeters).
+#define MAX_DISTANCE 45  // Maximum distance we want to ping for (in centimeters).
 // Maximum sensor distance is rated at 400-500cm.
 
 #define BASE_NOTE 48
@@ -75,7 +75,6 @@ void setup() {
 }
 
 int currentNote = 0;
-int currentVelocity = 0;
 
 void loop() {
   // waveform1.frequency(440);
@@ -92,11 +91,10 @@ void loop() {
   int velocity = round(gain * 127.0);
 
   if (note_number != currentNote) {
-    MIDI.sendNoteOn(note_number, velocity, 1);
-    MIDI.sendNoteOff(currentNote, currentVelocity, 1);
-    currentNote = note_number;
-    currentVelocity = velocity;
+    MIDI.sendNoteOn(note_number, velocity, channel);
+    MIDI.sendNoteOff(currentNote, velocity, channel);
   }
+  MIDI.sendAfterTouch(velocity, channel);
 
   // Print output to Serial
   char output[96];
