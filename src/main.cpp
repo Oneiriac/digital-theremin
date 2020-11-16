@@ -39,6 +39,10 @@ AudioConnection patchCord9(filter1, 0, i2s1, 1);
 
 #define BASE_NOTE 48
 #define RANGE_SIZE 13
+#define POT1_LOWER_OFFSET 10
+#define POT1_HIGHER_OFFSET 10
+
+uint8_t POT1_RANGE = 1024 - POT1_LOWER_OFFSET - POT1_HIGHER_OFFSET;
 
 NewPingNonBlocking pitch_sensor(11, 12, MAX_DISTANCE);
 NewPingNonBlocking gain_sensor(13, 14, MAX_DISTANCE);
@@ -77,42 +81,52 @@ void setup() {
 }
 
 int currentNote = 0;
-int currentAftertouch = 0;
+int currentAfterTouch = 0;
 
 void loop() {
   // waveform1.frequency(440);
   boolean logChangedValues = false;
   delay(29);
+  // Frequency using HC-SR04: lower the further away you get, higher the closer you get
   int pitch_distance = pitch_sensor.ping_average() / US_ROUNDTRIP_CM;
-  int gain_distance = gain_sensor.ping_average() / US_ROUNDTRIP_CM;
-  // Frequency: lower the further away you get, higher the closer you get
   int note_number = pitch_handler.midi_note_from_distance(pitch_distance);
   string note_string = pitch_handler.midi_note_string(note_number);
   float frequency = pitch_handler.midi_note_to_frequency(note_number);
-  play_frequency(frequency);
+  // Gain/aftertouch using HC-SR04: lower further away, higher closer
+  int gain_distance = gain_sensor.ping_average() / US_ROUNDTRIP_CM;
   float gain = gain_from_distance(gain_distance, MAX_DISTANCE);  // Gain: lower when further away, higher when closer
-  amp1.gain(gain);
-  int velocity = round(gain * 127.0);
+  int afterTouch = round(gain * 127.0);
 
+  // Set MIDI velocity using potentiometer
+  int velocity = analogRead(18) / 8;   // From 0-1023 to 0-127
+  boolean noteActive = velocity >= 2;  // Disable volume out and MIDI note on when potentiometer is off/nearly off
+  if (!noteActive) MIDI.sendNoteOff(currentNote, velocity, channel);
+
+  // Send MIDI
   if (note_number != currentNote) {
-    MIDI.sendNoteOn(note_number, velocity, channel);
+    if (noteActive) MIDI.sendNoteOn(note_number, velocity, channel);
     MIDI.sendNoteOff(currentNote, velocity, channel);
     currentNote = note_number;
     logChangedValues = true;
   }
 
-  if (currentAftertouch != velocity) {
-    MIDI.sendAfterTouch(velocity, channel);
-    currentAftertouch = velocity;
+  if (currentAfterTouch != afterTouch) {
+    MIDI.sendAfterTouch(afterTouch, channel);
+    currentAfterTouch = afterTouch;
     logChangedValues = true;
   }
+
+  // Output audio
+  play_frequency(frequency);
+  amp1.gain(noteActive ? gain : 0);
 
   // Print output to Serial
   if (logChangedValues) {
     char output[96];
-    snprintf(output, sizeof(output),
-             "Note: %s\tFrequency (Hz): %.1f\t Pitch distance (cm): %d\tGain: %.1f\tGain distance (cm): %d",
-             note_string.c_str(), frequency, pitch_distance, gain, gain_distance);
+    snprintf(
+        output, sizeof(output),
+        "Note: %s\tFrequency (Hz): %.1f\t Pitch distance (cm): %d\tGain/Aftertouch: %d\tftertouch distance (cm): %d",
+        note_string.c_str(), frequency, pitch_distance, afterTouch, gain_distance);
     Serial.println(output);
   }
 }
