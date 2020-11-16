@@ -75,6 +75,7 @@ void setup() {
 }
 
 int currentNote = 0;
+int currentAftertouch = 0;
 
 void loop() {
   // waveform1.frequency(440);
@@ -93,13 +94,18 @@ void loop() {
   if (note_number != currentNote) {
     MIDI.sendNoteOn(note_number, velocity, channel);
     MIDI.sendNoteOff(currentNote, velocity, channel);
+    currentNote = note_number;
   }
-  MIDI.sendAfterTouch(velocity, channel);
+
+  if (currentAftertouch != velocity) {
+    MIDI.sendAfterTouch(velocity, channel);
+    currentAftertouch = velocity;
+  }
 
   // Print output to Serial
   char output[96];
   snprintf(output, sizeof(output),
            "Note: %s\tFrequency (Hz): %.1f\t Pitch distance (cm): %.1f\tGain: %.1f\tGain distance (cm): %.1f",
            note_string.c_str(), frequency, pitch_distance, gain, gain_distance);
-  Serial.println(output);
+  // Serial.println(output);
 }
