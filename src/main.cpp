@@ -39,8 +39,8 @@ AudioConnection patchCord9(filter1, 0, i2s1, 1);
 
 #define BASE_NOTE 48
 #define RANGE_SIZE 13
-#define POT1_LOWER_OFFSET 10
-#define POT1_HIGHER_OFFSET 10
+#define POT1_LOWER_OFFSET 10U
+#define POT1_HIGHER_OFFSET 10U
 
 uint8_t POT1_RANGE = 1024 - POT1_LOWER_OFFSET - POT1_HIGHER_OFFSET;
 
