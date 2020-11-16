@@ -79,6 +79,7 @@ int currentAftertouch = 0;
 
 void loop() {
   // waveform1.frequency(440);
+  boolean logChangedValues = false;
   delay(29);
   float pitch_distance = (float)pitch_sensor.ping_median(3) / (float)US_ROUNDTRIP_CM;
   float gain_distance = (float)gain_sensor.ping_median(3) / (float)US_ROUNDTRIP_CM;
@@ -95,17 +96,21 @@ void loop() {
     MIDI.sendNoteOn(note_number, velocity, channel);
     MIDI.sendNoteOff(currentNote, velocity, channel);
     currentNote = note_number;
+    logChangedValues = true;
   }
 
   if (currentAftertouch != velocity) {
     MIDI.sendAfterTouch(velocity, channel);
     currentAftertouch = velocity;
+    logChangedValues = true;
   }
 
   // Print output to Serial
-  char output[96];
-  snprintf(output, sizeof(output),
-           "Note: %s\tFrequency (Hz): %.1f\t Pitch distance (cm): %.1f\tGain: %.1f\tGain distance (cm): %.1f",
-           note_string.c_str(), frequency, pitch_distance, gain, gain_distance);
-  // Serial.println(output);
+  if (logChangedValues) {
+    char output[96];
+    snprintf(output, sizeof(output),
+             "Note: %s\tFrequency (Hz): %.1f\t Pitch distance (cm): %.1f\tGain: %.1f\tGain distance (cm): %.1f",
+             note_string.c_str(), frequency, pitch_distance, gain, gain_distance);
+    Serial.println(output);
+  }
 }
