@@ -39,8 +39,8 @@ AudioConnection patchCord9(filter1, 0, i2s1, 1);
 #define BASE_NOTE 48
 #define RANGE_SIZE 13
 
-NewPing pitch_sensor(12, 11, MAX_DISTANCE);
-NewPing gain_sensor(14, 13, MAX_DISTANCE);
+NewPing pitch_sensor(11, 12, MAX_DISTANCE);
+NewPing gain_sensor(13, 14, MAX_DISTANCE);
 MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, MIDI);
 PitchHandler pitch_handler(MAX_DISTANCE, BASE_NOTE, RANGE_SIZE, MIDI);
 const int channel = 1;
