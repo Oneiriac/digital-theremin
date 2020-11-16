@@ -82,6 +82,7 @@ void setup() {
 
 int currentNote = 0;
 int currentAfterTouch = 0;
+int currentPitchBendInt = 0;
 
 void loop() {
   // waveform1.frequency(440);
@@ -101,6 +102,22 @@ void loop() {
   int velocity = analogRead(18) / 8;   // From 0-1023 to 0-127
   boolean noteActive = velocity >= 2;  // Disable volume out and MIDI note on when potentiometer is off/nearly off
   if (!noteActive) MIDI.sendNoteOff(currentNote, velocity, channel);
+
+  // Read LDRs for pitch bend
+  // TODO: set min/max range using button press
+  int ldr1 = analogRead(15);
+  int ldr2 = analogRead(16);
+  int pitchBendInt = ldr1 - ldr2;
+  if (pitchBendInt != currentPitchBendInt) {
+    currentPitchBendInt = pitchBendInt;
+    float pitchBend = (float)pitchBendInt / 1024.0 * 10.0;
+    Serial.print(ldr1);
+    Serial.print(" ");
+    Serial.print(ldr2);
+    Serial.print(" ");
+    Serial.println(pitchBend);
+    MIDI.sendPitchBend(pitchBend, channel);
+  }
 
   // Send MIDI
   if (note_number != currentNote) {
