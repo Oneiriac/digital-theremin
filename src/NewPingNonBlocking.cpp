@@ -15,11 +15,10 @@
 unsigned long NewPingNonBlocking::ping_average(unsigned int max_cm_distance = 0) {
   auto pingTime = ping(max_cm_distance);
 
-  if (_echoIndexToOverwrite >= ITERATIONS) _echoIndexToOverwrite = 0;
   // If NO_ECHO, skip updating the average
   if (pingTime != NO_ECHO) {
     _echoTimesToAverage[_echoIndexToOverwrite] = pingTime;
-    _echoIndexToOverwrite++;
+    _echoIndexToOverwrite = (_echoIndexToOverwrite + 1) % ITERATIONS;
     // Recalculate the average
     int sum = 0;
     for (int j = 0; j < ITERATIONS; j++) {
