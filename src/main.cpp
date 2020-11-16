@@ -9,6 +9,7 @@
 
 #include <string>
 
+#include "NewPingNonBlocking.h"
 #include "music.h"
 #include "wait.h"
 
@@ -39,8 +40,9 @@ AudioConnection patchCord9(filter1, 0, i2s1, 1);
 #define BASE_NOTE 48
 #define RANGE_SIZE 13
 
-NewPing pitch_sensor(11, 12, MAX_DISTANCE);
-NewPing gain_sensor(13, 14, MAX_DISTANCE);
+NewPingNonBlocking pitch_sensor(11, 12, MAX_DISTANCE);
+NewPingNonBlocking gain_sensor(13, 14, MAX_DISTANCE);
+
 MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, MIDI);
 PitchHandler pitch_handler(MAX_DISTANCE, BASE_NOTE, RANGE_SIZE, MIDI);
 const int channel = 1;
@@ -81,8 +83,8 @@ void loop() {
   // waveform1.frequency(440);
   boolean logChangedValues = false;
   delay(29);
-  float pitch_distance = (float)pitch_sensor.ping_median(3) / (float)US_ROUNDTRIP_CM;
-  float gain_distance = (float)gain_sensor.ping_median(3) / (float)US_ROUNDTRIP_CM;
+  int pitch_distance = pitch_sensor.ping_average() / US_ROUNDTRIP_CM;
+  int gain_distance = gain_sensor.ping_average() / US_ROUNDTRIP_CM;
   // Frequency: lower the further away you get, higher the closer you get
   int note_number = pitch_handler.midi_note_from_distance(pitch_distance);
   string note_string = pitch_handler.midi_note_string(note_number);
@@ -109,7 +111,7 @@ void loop() {
   if (logChangedValues) {
     char output[96];
     snprintf(output, sizeof(output),
-             "Note: %s\tFrequency (Hz): %.1f\t Pitch distance (cm): %.1f\tGain: %.1f\tGain distance (cm): %.1f",
+             "Note: %s\tFrequency (Hz): %.1f\t Pitch distance (cm): %d\tGain: %.1f\tGain distance (cm): %d",
              note_string.c_str(), frequency, pitch_distance, gain, gain_distance);
     Serial.println(output);
   }
