@@ -83,9 +83,6 @@ void setup() {
   freeverb1.damping(0.1);
   filter1.frequency(pitch_handler.midi_note_to_frequency(80));
   amp1.gain(1.0);
-  auto minAnalogRead = set_ldr_min(BEND_UP_PIN, BEND_DOWN_PIN);
-  Serial.print("New LDR min for analogRead:");
-  Serial.println(minAnalogRead);
 }
 
 int currentNote = 0;
