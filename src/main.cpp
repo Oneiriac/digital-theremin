@@ -43,7 +43,7 @@ AudioConnection patchCord9(filter1, 0, i2s1, 1);
 #define POT1_LOWER_OFFSET 10U
 #define POT1_HIGHER_OFFSET 10U
 
-uint8_t POT1_RANGE = 1024 - POT1_LOWER_OFFSET - POT1_HIGHER_OFFSET;
+unsigned int POT1_RANGE = 1024 - POT1_LOWER_OFFSET - POT1_HIGHER_OFFSET;
 
 NewPingNonBlocking pitch_sensor(11, 12, MAX_DISTANCE);
 NewPingNonBlocking gain_sensor(13, 14, MAX_DISTANCE);
