@@ -11,7 +11,7 @@
 #define PITCH_BEND_MAX_BOUND 0.9F
 
 // Set up arrays for the last N readings which will be used for averaging pitch bend values
-#define NUM_PITCH_BENDS_TO_AVERAGE 5
+#define NUM_PITCH_BENDS_TO_AVERAGE 10
 double pitchBendsToAverage[NUM_PITCH_BENDS_TO_AVERAGE] = {0};
 int bendUpAnalogReads[NUM_PITCH_BENDS_TO_AVERAGE] = {0};
 int bendDownAnalogReads[NUM_PITCH_BENDS_TO_AVERAGE] = {0};
