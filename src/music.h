@@ -8,23 +8,7 @@
 #include <vector>
 
 using namespace std;
-#define SCALE_TYPE const vector<int>
-
-SCALE_TYPE MAJOR_SCALE = {
-    0, 2, 4, 5, 7, 9, 11,
-};
-
-SCALE_TYPE PENTATONIC_SCALE = {
-    0, 2, 4, 7, 9,
-};
-
-SCALE_TYPE MINOR_SCALE = {0, 2, 3, 5, 7, 8, 10};
-SCALE_TYPE WHOLE_TONE_SCALE = {0, 2, 4, 6, 8, 10};
-SCALE_TYPE MAJOR_CHORD = {0, 4, 7};
-SCALE_TYPE MINOR_CHORD = {0, 3, 7};
-SCALE_TYPE MAJOR_7TH_CHORD = {0, 4, 7, 11};
-SCALE_TYPE DOMINANT_7TH_CHORD = {0, 4, 7, 10};
-SCALE_TYPE CHROMATIC_SCALE = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+#define SCALE_TYPE vector<int>
 
 // How many extra buckets should be allocated to the lowest and highest divisions in a range
 // (to allow them to be selected more easily)
@@ -36,7 +20,7 @@ class PitchHandler {
  public:
   explicit PitchHandler(float maxDistance, int baseNote, int rangeSize, MIDI_TYPE midi);
   int midi_note_from_distance(float distance);
-  void set_active_scale(const vector<int>& scale);
+  void set_active_scale(SCALE_TYPE& scale);
   float midi_note_to_frequency(int midi_note);
   static string midi_note_string(int midi_note);
 

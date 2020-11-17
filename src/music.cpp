@@ -12,6 +12,22 @@
 
 using namespace std;
 
+SCALE_TYPE MAJOR_SCALE = {
+    0, 2, 4, 5, 7, 9, 11,
+};
+
+SCALE_TYPE PENTATONIC_SCALE = {
+    0, 2, 4, 7, 9,
+};
+
+SCALE_TYPE MINOR_SCALE = {0, 2, 3, 5, 7, 8, 10};
+SCALE_TYPE WHOLE_TONE_SCALE = {0, 2, 4, 6, 8, 10};
+SCALE_TYPE MAJOR_CHORD = {0, 4, 7};
+SCALE_TYPE MINOR_CHORD = {0, 3, 7};
+SCALE_TYPE MAJOR_7TH_CHORD = {0, 4, 7, 11};
+SCALE_TYPE DOMINANT_7TH_CHORD = {0, 4, 7, 10};
+SCALE_TYPE CHROMATIC_SCALE = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+
 // How many centimetres away from the last note transition point before a transition is allowed
 #define HYSTERESIS_THRESHOLD 2.0
 
@@ -49,7 +65,7 @@ int PitchHandler::midi_note_from_distance(float distance) {
   return currentNote;
 };
 
-void PitchHandler::set_active_scale(const vector<int>& scale) { activeScale = scale; }
+void PitchHandler::set_active_scale(SCALE_TYPE& scale) { activeScale = scale; }
 
 /**
  * @brief See https://en.wikipedia.org/wiki/MIDI_tuning_standard
