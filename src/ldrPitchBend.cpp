@@ -3,16 +3,21 @@
 #include <Arduino.h>
 
 #include <cmath>
+#include <tuple>
 
 #include "rescale.h"
 
 #define PITCH_BEND_MIN_BOUND 0.15F
 #define PITCH_BEND_MAX_BOUND 0.9F
 
+// Set up arrays for the last N readings which will be used for averaging pitch bend values
 #define NUM_PITCH_BENDS_TO_AVERAGE 5
 double pitchBendsToAverage[NUM_PITCH_BENDS_TO_AVERAGE] = {0};
+int bendUpAnalogReads[NUM_PITCH_BENDS_TO_AVERAGE] = {0};
+int bendDownAnalogReads[NUM_PITCH_BENDS_TO_AVERAGE] = {0};
 unsigned int pitchBendIndex = 0;
 // Assign default values for analog read bounds based on the resistors used in the LDR voltage divider
+// These default values target 330K resistors
 unsigned int minAnalogRead = 160;
 unsigned int maxAnalogRead = 240;
 
@@ -33,6 +38,8 @@ float read_pitch_bend(unsigned int bend_up_pin, unsigned int bend_down_pin) {
   double pitchBendDelta =
       ldrBendUp - ldrBendDown;  // Delta between readings of ldrBendUp and ldrBendDown, in range [-1, 1]
   pitchBendsToAverage[pitchBendIndex] = pitchBendDelta;
+  bendUpAnalogReads[pitchBendIndex] = ldrBendUpAnalog;
+  bendDownAnalogReads[pitchBendIndex] = ldrBendDownAnalog;
   pitchBendIndex = (pitchBendIndex + 1) % NUM_PITCH_BENDS_TO_AVERAGE;
 
   double sum = 0;
@@ -71,6 +78,14 @@ float read_pitch_bend(unsigned int bend_up_pin, unsigned int bend_down_pin) {
   return rescaledPitchBend;
 }
 
+int get_average_ldr_analog() {
+  double sum = 0;
+  for (int i = 0; i < NUM_PITCH_BENDS_TO_AVERAGE; i++) {
+    sum += round(static_cast<double>(bendUpAnalogReads[i] + bendDownAnalogReads[i]) / 2);
+  }
+  return round(sum / float(NUM_PITCH_BENDS_TO_AVERAGE));
+}
+
 /**
  * @brief Set the minimum bound of the LDR analog reading range (corresponds to 0.0 pitch bend).
  * Call this when neither LDR is covered to get a baseline for ambient light (min light resistance).
@@ -78,12 +93,15 @@ float read_pitch_bend(unsigned int bend_up_pin, unsigned int bend_down_pin) {
  * @param bend_up_pin
  * @param bend_down_pin
  */
-int set_ldr_min(unsigned int bend_up_pin, unsigned int bend_down_pin) {
-  float scalingFactor = 1.1;
-  int ldrBendUp = analogRead(bend_up_pin);
-  int ldrBendDown = analogRead(bend_down_pin);
-  int averageLdrValue = (ldrBendUp + ldrBendDown + 1) / 2;
-  minAnalogRead = round((float)averageLdrValue * scalingFactor);
+int set_ldr_min() {
+  double scalingFactor = 1.1;
+  // Arrays are populated, calculate the average of the averages of the LDRs
+  double sum = 0;
+  for (int i = 0; i < NUM_PITCH_BENDS_TO_AVERAGE; i++) {
+    sum += round(static_cast<double>(bendUpAnalogReads[i] + bendDownAnalogReads[i]) / 2.0);
+  }
+  double averageValue = round(sum / (double)NUM_PITCH_BENDS_TO_AVERAGE);
+  minAnalogRead = round((double)averageValue * scalingFactor);  // Set minAnalogRead
   return minAnalogRead;
 }
 
@@ -94,12 +112,29 @@ int set_ldr_min(unsigned int bend_up_pin, unsigned int bend_down_pin) {
  * @param bend_up_pin
  * @param bend_down_pin
  */
-int set_ldr_max(unsigned int bend_up_pin, unsigned int bend_down_pin) {
-  float scalingFactor = 0.9;
-  int ldrBendUp = analogRead(bend_up_pin);
-  int ldrBendDown = analogRead(bend_down_pin);
-  // Take the max reading (only one LDR nFeeds to be covered)
-  int maxLdrValue = max(ldrBendUp, ldrBendDown);
-  maxAnalogRead = round((float)maxLdrValue * scalingFactor);
+int set_ldr_max() {
+  double scalingFactor = 0.9;
+  // Arrays are populated, calculate the average of the max readings
+  double sum = 0;
+  for (int i = 0; i < NUM_PITCH_BENDS_TO_AVERAGE; i++) {
+    sum += max(bendUpAnalogReads[i], bendDownAnalogReads[i]);
+  }
+  double averageValue = round(sum / (double)NUM_PITCH_BENDS_TO_AVERAGE);
+  maxAnalogRead = round((double)averageValue * scalingFactor);  // Set maxAnalogRead
   return maxAnalogRead;
+}
+
+bool firstSetDone = false;
+void first_set_ldr_min(unsigned int bend_up_pin, unsigned int bend_down_pin) {
+  if (firstSetDone) return;
+  // Arrays are not populated, so let's do that
+  for (int i = 0; i < NUM_PITCH_BENDS_TO_AVERAGE; i++) {
+    // Read the values
+    int ldrBendUpAnalog = analogRead(bend_up_pin);
+    int ldrBendDownAnalog = analogRead(bend_down_pin);
+    bendUpAnalogReads[pitchBendIndex] = ldrBendUpAnalog;
+    bendDownAnalogReads[pitchBendIndex] = ldrBendDownAnalog;
+  }
+  set_ldr_min();
+  firstSetDone = true;
 }
