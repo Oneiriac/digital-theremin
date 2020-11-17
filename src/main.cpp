@@ -10,6 +10,7 @@
 #include <string>
 
 #include "NewPingNonBlocking.h"
+#include "afterTouch.h"
 #include "ldrPitchBend.h"
 #include "music.h"
 #include "wait.h"
@@ -96,9 +97,10 @@ void loop() {
   string note_string = pitch_handler.midi_note_string(note_number);
   float frequency = pitch_handler.midi_note_to_frequency(note_number);
   // Gain/aftertouch using HC-SR04: lower further away, higher closer
-  int gain_distance = gain_sensor.ping_average() / US_ROUNDTRIP_CM;
-  float gain = gain_from_distance(gain_distance, MAX_DISTANCE);  // Gain: lower when further away, higher when closer
-  int afterTouch = round(gain * 127.0);
+  int afterTouchDistance = gain_sensor.ping_average() / US_ROUNDTRIP_CM;
+  float afterTouchFloat =
+      aftertouch_from_distance(afterTouchDistance, MAX_DISTANCE);  // Gain: lower when further away, higher when closer
+  int afterTouch = round(afterTouchFloat * 127.0);
 
   // Set MIDI velocity using potentiometer
   int velocity = analogRead(18) / 8;   // From 0-1023 to 0-127
@@ -131,7 +133,7 @@ void loop() {
 
   // Output audio
   play_frequency(frequency);
-  amp1.gain(noteActive ? gain : 0);
+  amp1.gain(noteActive ? afterTouchFloat : 0);
 
   // Print output to Serial
   if (logChangedValues) {
@@ -139,7 +141,7 @@ void loop() {
     snprintf(
         output, sizeof(output),
         "Note: %s\tFrequency (Hz): %.1f\t Pitch distance (cm): %d\tGain/Aftertouch: %d\tftertouch distance (cm): %d",
-        note_string.c_str(), frequency, pitch_distance, afterTouch, gain_distance);
+        note_string.c_str(), frequency, pitch_distance, afterTouch, afterTouchDistance);
     // Serial.println(output);
   }
 }

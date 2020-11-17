@@ -84,6 +84,5 @@ class PitchHandler {
   SCALE_TYPE& activeScale;
   MIDI_TYPE midi;
 };
-float gain_from_distance(float distance, float maxDistance);
 
 #endif
