@@ -44,6 +44,9 @@ AudioConnection patchCord9(filter1, 0, i2s1, 1);
 #define POT1_LOWER_OFFSET 10U
 #define POT1_HIGHER_OFFSET 10U
 
+#define BEND_UP_PIN 15
+#define BEND_DOWN_PIN 16
+
 unsigned int POT1_RANGE = 1024 - POT1_LOWER_OFFSET - POT1_HIGHER_OFFSET;
 
 NewPingNonBlocking pitch_sensor(11, 12, MAX_DISTANCE);
@@ -80,6 +83,9 @@ void setup() {
   freeverb1.damping(0.1);
   filter1.frequency(pitch_handler.midi_note_to_frequency(80));
   amp1.gain(1.0);
+  auto minAnalogRead = set_ldr_min(BEND_UP_PIN, BEND_DOWN_PIN);
+  Serial.print("New LDR min for analogRead:");
+  Serial.println(minAnalogRead);
 }
 
 int currentNote = 0;
@@ -111,7 +117,7 @@ void loop() {
   }
 
   // Read LDRs for pitch bend
-  float pitchBend = read_pitch_bend(15, 16);
+  float pitchBend = read_pitch_bend(BEND_UP_PIN, BEND_DOWN_PIN);
   if (abs(currentPitchBend - pitchBend) >= 1.0 / 8192.0) {
     MIDI.sendPitchBend(pitchBend, channel);
     currentPitchBend = pitchBend;
