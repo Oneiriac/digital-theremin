@@ -47,10 +47,10 @@ float read_pitch_bend(unsigned int bend_up_pin, unsigned int bend_down_pin) {
     sum += pitchBendsToAverage[pitchBendIndex];
   }
   double averagePitchBend = sum / (double)NUM_PITCH_BENDS_TO_AVERAGE;
-  char output[96];
-  snprintf(output, 96, "Up (raw): %d, Down (raw): %d, minAnalogRead: %d, maxAnalogRead: %d, pitchBend: %.2f",
-           ldrBendUpAnalog, ldrBendDownAnalog, minAnalogRead, maxAnalogRead, averagePitchBend);
-  Serial.println(output);
+  // char output[96];
+  // snprintf(output, 96, "Up (raw): %d, Down (raw): %d, minAnalogRead: %d, maxAnalogRead: %d, pitchBend: %.2f",
+  //          ldrBendUpAnalog, ldrBendDownAnalog, minAnalogRead, maxAnalogRead, averagePitchBend);
+  // Serial.println(output);
 
   // Rescale pitch bend using linear interpolation
   double rescaledPitchBend;

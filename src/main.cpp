@@ -50,7 +50,7 @@ AudioConnection patchCord9(filter1, 0, i2s1, 1);
 unsigned int POT1_RANGE = 1024 - POT1_LOWER_OFFSET - POT1_HIGHER_OFFSET;
 
 NewPingNonBlocking pitch_sensor(11, 12, MAX_DISTANCE);
-NewPingNonBlocking gain_sensor(13, 14, MAX_DISTANCE);
+NewPingNonBlocking gain_sensor(9, 10, MAX_DISTANCE);
 
 MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, MIDI);
 PitchHandler pitch_handler(MAX_DISTANCE, BASE_NOTE, RANGE_SIZE, MIDI);
@@ -111,6 +111,7 @@ void loop() {
   if (currentVelocity != velocity) {
     currentVelocity = velocity;
     if (!noteActive) MIDI.sendNoteOff(currentNote, velocity, channel);
+    logChangedValues = true;
   }
 
   // Read LDRs for pitch bend
@@ -140,11 +141,11 @@ void loop() {
 
   // Print output to Serial
   if (logChangedValues) {
-    char output[96];
-    snprintf(
-        output, sizeof(output),
-        "Note: %s\tFrequency (Hz): %.1f\t Pitch distance (cm): %d\tGain/Aftertouch: %d\tftertouch distance (cm): %d",
-        note_string.c_str(), frequency, pitch_distance, afterTouch, afterTouchDistance);
-    // Serial.println(output);
+    char output[192];
+    snprintf(output, sizeof(output),
+             "Note: %s\t Pitch distance (cm): %d\tGain/Aftertouch: %d\taftertouch distance (cm): "
+             "%d\tvelocity: %d\tPitch bend: %.2f",
+             note_string.c_str(), pitch_distance, afterTouch, afterTouchDistance, velocity, currentPitchBend);
+    Serial.println(output);
   }
 }
