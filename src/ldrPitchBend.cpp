@@ -1,8 +1,10 @@
 #include "ldrPitchBend.h"
 
+#include <Arduino.h>
+
 #include <cmath>
 
-#include "Arduino.h"
+#include "rescale.h"
 
 #define ZERO_RANGE 0.15F
 #define PITCH_BEND_SCALE_FACTOR 10.0F
@@ -28,17 +30,18 @@ float read_pitch_bend(unsigned int bend_up_pin, unsigned int bend_down_pin) {
   }
   float pitchBend =
       clip(PITCH_BEND_SCALE_FACTOR * (float)sum / (1024.0 * (float)NUM_PITCH_BENDS_TO_AVERAGE), -1.0, +1.0);
-  // Renormalize pitch bend
-  float renormalizedPitchBend;
-  if (abs(pitchBend) <= ZERO_RANGE) {
+  // Rescale pitch bend using linear interpolation
+  float rescaledPitchBend;
+  // Use std::abs, otherwise will be cast to int
+  if (std::abs(pitchBend) <= ZERO_RANGE) {
     // Values within [-ZERO_RANGE, ZERO_RANGE] are set to zero to stop fluctuations
-    renormalizedPitchBend = 0.0;
+    rescaledPitchBend = 0.0;
   } else if (pitchBend > ZERO_RANGE) {
-    // Renormalize values from (ZERO_RANGE, 1.0] to (0.0, 1.0]
-    renormalizedPitchBend = (pitchBend - ZERO_RANGE) / (1 - ZERO_RANGE);
+    // Rescale values from (ZERO_RANGE, 1.0] to (0.0, 1.0]
+    rescaledPitchBend = rescale(ZERO_RANGE, 1.0, 0.0, 1.0, pitchBend);
   } else {
-    // Renormalize values from [-1.0, ZERO_RANGE) to [-1.0, 0.0)
-    renormalizedPitchBend = -(pitchBend + ZERO_RANGE) / (-1 + ZERO_RANGE);
+    // Rescale values from [-1.0, ZERO_RANGE) to [-1.0, 0.0)
+    rescaledPitchBend = rescale(-1.0, -ZERO_RANGE, -1.0, 0.0, pitchBend);
   }
-  return renormalizedPitchBend;
+  return rescaledPitchBend;
 }

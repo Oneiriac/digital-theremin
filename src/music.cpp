@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+#include "rescale.h"
+
 using namespace std;
 
 // How many centimetres away from the last note transition point before a transition is allowed
@@ -68,6 +70,9 @@ string PitchHandler::midi_note_string(int midi_note) {
   return string(outString);
 }
 
+#define GAIN_ZERO_BOUND 0.07
+#define GAIN_MAX_BOUND 0.93
+
 float gainArray[5] = {0};
 int gainArraySize = sizeof(gainArray) / sizeof(float);
 int currentIndex = 0;
@@ -84,14 +89,26 @@ float gain_from_distance(float distance, float maxDistance) {
   // If distance is registered, update gainArray
   // If distance is not registered, do not update gainArray
   if (!noDistance) {
-    float thisVolume = static_cast<float>((maxDistance - distance) / maxDistance);
-    gainArray[currentIndex] = thisVolume;
+    float thisGain = static_cast<float>((maxDistance - distance) / maxDistance);
+    gainArray[currentIndex] = thisGain;
     currentIndex = (currentIndex + 1) % gainArraySize;
   }
-  float sumVolumes = 0;
+  float sumGain = 0;
   for (int i = 0; i < gainArraySize; i++) {
-    sumVolumes += gainArray[i];
+    sumGain += gainArray[i];
   }
-  float averagedVolumes = sumVolumes / (float)gainArraySize;
-  return averagedVolumes;
+  float averagedGain = sumGain / (float)gainArraySize;
+  // Renormalize pitch bend
+  float rescaledGain;
+  if (averagedGain <= GAIN_ZERO_BOUND) {
+    // Values <= GAIN_ZERO_BOUND are set to zero to make selecting zero easier
+    rescaledGain = 0.0;
+  } else if (averagedGain >= GAIN_MAX_BOUND) {
+    // Values >= GAIN_MAX_BOUND are set to 1.0 to make selecting max easier
+    rescaledGain = 1.0;
+  } else {
+    // Rescale values from (GAIN_ZERO_BOUND, GAIN_MAX_BOUND) to (0.0, 1.0)
+    rescaledGain = rescale(GAIN_ZERO_BOUND, GAIN_MAX_BOUND, 0.0, 1.0, averagedGain);
+  }
+  return rescaledGain;
 }
