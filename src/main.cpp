@@ -10,6 +10,7 @@
 #include <string>
 
 #include "NewPingNonBlocking.h"
+#include "ldrPitchBend.h"
 #include "music.h"
 #include "wait.h"
 
@@ -82,7 +83,7 @@ void setup() {
 
 int currentNote = 0;
 int currentAfterTouch = 0;
-int currentPitchBendInt = 0;
+float currentPitchBend = 0.0;
 
 void loop() {
   // waveform1.frequency(440);
@@ -104,19 +105,10 @@ void loop() {
   if (!noteActive) MIDI.sendNoteOff(currentNote, velocity, channel);
 
   // Read LDRs for pitch bend
-  // TODO: set min/max range using button press
-  int ldr1 = analogRead(15);
-  int ldr2 = analogRead(16);
-  int pitchBendInt = ldr1 - ldr2;
-  if (pitchBendInt != currentPitchBendInt) {
-    currentPitchBendInt = pitchBendInt;
-    float pitchBend = (float)pitchBendInt / 1024.0 * 10.0;
-    Serial.print(ldr1);
-    Serial.print(" ");
-    Serial.print(ldr2);
-    Serial.print(" ");
-    Serial.println(pitchBend);
+  float pitchBend = read_pitch_bend(15, 16);
+  if (abs(currentPitchBend - pitchBend) >= 1.0 / 8192.0) {
     MIDI.sendPitchBend(pitchBend, channel);
+    currentPitchBend = pitchBend;
   }
 
   // Send MIDI
@@ -144,6 +136,6 @@ void loop() {
         output, sizeof(output),
         "Note: %s\tFrequency (Hz): %.1f\t Pitch distance (cm): %d\tGain/Aftertouch: %d\tftertouch distance (cm): %d",
         note_string.c_str(), frequency, pitch_distance, afterTouch, gain_distance);
-    Serial.println(output);
+    // Serial.println(output);
   }
 }
