@@ -83,6 +83,7 @@ void setup() {
 
 int currentNote = 0;
 int currentAfterTouch = 0;
+int currentVelocity = 0;
 float currentPitchBend = 0.0;
 
 void loop() {
@@ -102,7 +103,10 @@ void loop() {
   // Set MIDI velocity using potentiometer
   int velocity = analogRead(18) / 8;   // From 0-1023 to 0-127
   boolean noteActive = velocity >= 2;  // Disable volume out and MIDI note on when potentiometer is off/nearly off
-  if (!noteActive) MIDI.sendNoteOff(currentNote, velocity, channel);
+  if (currentVelocity != velocity) {
+    currentVelocity = velocity;
+    if (!noteActive) MIDI.sendNoteOff(currentNote, velocity, channel);
+  }
 
   // Read LDRs for pitch bend
   float pitchBend = read_pitch_bend(15, 16);
