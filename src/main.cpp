@@ -39,7 +39,7 @@ AudioConnection patchCord9(filter1, 0, i2s1, 1);
 #define MAX_DISTANCE 45  // Maximum distance we want to ping for (in centimeters).
 // Maximum sensor distance is rated at 400-500cm.
 
-#define BASE_NOTE 48
+#define BASE_NOTE 56
 #define RANGE_SIZE 13
 #define POT1_LOWER_OFFSET 10U
 #define POT1_HIGHER_OFFSET 10U
@@ -56,10 +56,12 @@ MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, MIDI);
 PitchHandler pitch_handler(MAX_DISTANCE, BASE_NOTE, RANGE_SIZE, MIDI);
 const int channel = 1;
 
-void play_frequency(float freq) {
-  waveform1.frequency(freq / 2.0);
-  waveformMod1.frequency(freq);
-  waveform2.frequency(freq * 3.0 / 2.0);
+void play_frequency(float freq, float pitchBend = 0) {
+  double cents = pitchBend * 200.0;  // Max pitch bend is 2 semitones
+  double trueFreq = freq * pow(2, cents / 1200.0);
+  waveform1.frequency(trueFreq / 2.0);
+  waveformMod1.frequency(trueFreq);
+  waveform2.frequency(trueFreq * 3.0 / 2.0);
 }
 
 void setup() {
@@ -136,7 +138,7 @@ void loop() {
   }
 
   // Output audio
-  play_frequency(frequency);
+  play_frequency(frequency, currentPitchBend);
   amp1.gain(noteActive ? afterTouchFloat : 0);
 
   // Print output to Serial
