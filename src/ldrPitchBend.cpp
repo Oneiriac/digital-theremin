@@ -8,37 +8,52 @@
 
 #define PITCH_BEND_MIN_BOUND 0.15F
 #define PITCH_BEND_MAX_BOUND 0.9F
-#define PITCH_BEND_SCALE_FACTOR 10.0F
 
 #define NUM_PITCH_BENDS_TO_AVERAGE 5
-int pitchBendsToAverage[NUM_PITCH_BENDS_TO_AVERAGE] = {0};
+double pitchBendsToAverage[NUM_PITCH_BENDS_TO_AVERAGE] = {0};
 unsigned int pitchBendIndex = 0;
+// Assign default values for analog read bounds based on the resistors used in the LDR voltage divider
+unsigned int minAnalogRead = 160;
+unsigned int maxAnalogRead = 240;
 
 double clip(double n, double lower, double upper) { return max(lower, min(n, upper)); }
+
+double rescale_with_clipping(double oldMin, double oldMax, double newMin, double newMax, double x) {
+  return clip(rescale(oldMin, oldMax, newMin, newMax, x), newMin, newMax);
+}
 
 float read_pitch_bend(unsigned int bend_up_pin, unsigned int bend_down_pin) {
   // Read LDRs for pitch bend
   // TODO: set min/max range using button press
-  int ldrBendUp = analogRead(bend_up_pin);
-  int ldrBendDown = analogRead(bend_down_pin);
-  int pitchBendInt = ldrBendUp - ldrBendDown;  // Delta between readings of ldrBendUp and ldrBendDown
-  pitchBendsToAverage[pitchBendIndex] = pitchBendInt;
+  int ldrBendUpAnalog = analogRead(bend_up_pin);
+  int ldrBendDownAnalog = analogRead(bend_down_pin);
+  double ldrBendUp = rescale_with_clipping(minAnalogRead, maxAnalogRead, 0, 1, ldrBendUpAnalog);
+  double ldrBendDown = rescale_with_clipping(minAnalogRead, maxAnalogRead, 0, 1, ldrBendDownAnalog);
+
+  double pitchBendDelta =
+      ldrBendUp - ldrBendDown;  // Delta between readings of ldrBendUp and ldrBendDown, in range [-1, 1]
+  pitchBendsToAverage[pitchBendIndex] = pitchBendDelta;
   pitchBendIndex = (pitchBendIndex + 1) % NUM_PITCH_BENDS_TO_AVERAGE;
 
-  int sum = 0;
+  double sum = 0;
   for (int i = 0; i < NUM_PITCH_BENDS_TO_AVERAGE; i++) {
     sum += pitchBendsToAverage[pitchBendIndex];
   }
-  double pitchBend = PITCH_BEND_SCALE_FACTOR * (double)sum / (1024.0 * (double)NUM_PITCH_BENDS_TO_AVERAGE);
+  double averagePitchBend = sum / (double)NUM_PITCH_BENDS_TO_AVERAGE;
+  char output[96];
+  snprintf(output, 96, "Up (raw): %d, Down (raw): %d, minAnalogRead: %d, maxAnalogRead: %d, pitchBend: %.2f",
+           ldrBendUpAnalog, ldrBendDownAnalog, minAnalogRead, maxAnalogRead, averagePitchBend);
+  Serial.println(output);
+
   // Rescale pitch bend using linear interpolation
   double rescaledPitchBend;
-  if (std::abs(pitchBend) <= PITCH_BEND_MIN_BOUND) {  // Use std::abs, otherwise will be cast to int
+  if (std::abs(averagePitchBend) <= PITCH_BEND_MIN_BOUND) {  // Use std::abs, otherwise will be cast to int
     rescaledPitchBend =
         0.0;  // Values within [-PITCH_BEND_MIN_BOUND, +PITCH_BEND_MIN_BOUND] are set to zero to stop fluctuations
 
   } else {
     double oldMin, oldMax, newMin, newMax;
-    if (pitchBend > 0) {
+    if (averagePitchBend > 0) {
       // Rescale values from (+PITCH_BEND_MIN_BOUND, 1.0] to (0.0, 1.0]
       oldMin = PITCH_BEND_MIN_BOUND;
       oldMax = PITCH_BEND_MAX_BOUND;
@@ -51,7 +66,40 @@ float read_pitch_bend(unsigned int bend_up_pin, unsigned int bend_down_pin) {
       newMin = -1.0;
       newMax = 0.0;
     }
-    rescaledPitchBend = clip(rescale(oldMin, oldMax, newMin, newMax, pitchBend), newMin, newMax);
+    rescaledPitchBend = rescale_with_clipping(oldMin, oldMax, newMin, newMax, averagePitchBend);
   }
   return rescaledPitchBend;
+}
+
+/**
+ * @brief Set the minimum bound of the LDR analog reading range (corresponds to 0.0 pitch bend).
+ * Call this when neither LDR is covered to get a baseline for ambient light (min light resistance).
+ *
+ * @param bend_up_pin
+ * @param bend_down_pin
+ */
+int set_ldr_min(unsigned int bend_up_pin, unsigned int bend_down_pin) {
+  float scalingFactor = 1.1;
+  int ldrBendUp = analogRead(bend_up_pin);
+  int ldrBendDown = analogRead(bend_down_pin);
+  int averageLdrValue = (ldrBendUp + ldrBendDown + 1) / 2;
+  minAnalogRead = round((float)averageLdrValue * scalingFactor);
+  return minAnalogRead;
+}
+
+/**
+ * @brief Set the max bound of the LDR analog reading range (corresponds to +-1.0 pitch bend)
+ * Call this when at least one LDR is fully covered to get the maximum possible dark resistance.
+ *
+ * @param bend_up_pin
+ * @param bend_down_pin
+ */
+int set_ldr_max(unsigned int bend_up_pin, unsigned int bend_down_pin) {
+  float scalingFactor = 0.9;
+  int ldrBendUp = analogRead(bend_up_pin);
+  int ldrBendDown = analogRead(bend_down_pin);
+  // Take the max reading (only one LDR nFeeds to be covered)
+  int maxLdrValue = max(ldrBendUp, ldrBendDown);
+  maxAnalogRead = round((float)maxLdrValue * scalingFactor);
+  return maxAnalogRead;
 }
